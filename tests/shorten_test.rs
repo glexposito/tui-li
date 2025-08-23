@@ -4,12 +4,13 @@ use tui_li::{routes, services::shortener::UrlStore};
 
 #[actix_web::test]
 async fn test_shorten_url() {
-    // Inject shared state like in main()
+    // Arrange
     let store = web::Data::new(Mutex::new(UrlStore::new()));
 
     let app =
         test::init_service(App::new().app_data(store.clone()).configure(routes::config)).await;
 
+    // Act
     let req = test::TestRequest::post()
         .uri("/shorten")
         .set_json(&serde_json::json!({ "long_url": "https://example.com" }))
@@ -17,7 +18,7 @@ async fn test_shorten_url() {
 
     let resp = test::call_service(&app, req).await;
 
-    // Accept 200 OK or 201 Created depending on your handler
+    // Assert
     assert!(resp.status() == StatusCode::OK || resp.status() == StatusCode::CREATED);
 
     let body: serde_json::Value = test::read_body_json(resp).await;
