@@ -11,7 +11,6 @@ Includes a redirect endpoint, a create/shorten endpoint, and a health check.
 - `GET /{id}` — redirect to the original long URL  
 - `GET /health` — liveness probe  
 - Simple in-memory `UrlStore` (behind `Mutex`)  
-- Tests using **`actix-web` test helpers** and **`rstest` fixtures**
 
 ---
 
