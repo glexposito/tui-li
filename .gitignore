@@ -1,0 +1,39 @@
+# Compiled files
+/target/
+**/*.rs.bk
+
+# Backup files from editors
+*~
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Rust/Cargo specific
+Cargo.lock        # (ignore if you're making a library, commit if it's a binary project)
+.cargo/
+.cargo-ok
+
+# Logs
+*.log
+
+# IDEs
+# VSCode
+.vscode/
+*.code-workspace
+
+# JetBrains (IntelliJ, CLion, RustRover, etc.)
+.idea/
+
+# Other IDEs / Editors
+*.iml
+*.sublime-project
+*.sublime-workspace
+
+# Misc
+.env
