@@ -1,4 +1,4 @@
-# tui-li — Tiny URL API (Rust + Actix-web)
+# tui.li — Tiny URL API (Rust + Actix-web)
 
 A minimal URL shortener API built with **Rust**, **Actix-web**, and an in-memory store.  
 Includes a redirect endpoint, a create/shorten endpoint, and a health check.
@@ -15,7 +15,7 @@ Includes a redirect endpoint, a create/shorten endpoint, and a health check.
 
 ---
 
-## Quick start
+## Run locally
 
 ### Prerequisites
 - Rust (stable) installed via `rustup`
@@ -45,7 +45,30 @@ cargo build
 cargo test
 ```
 
-> Tests use `rstest` fixtures to initialize the Actix app once per test function, keeping code tidy and isolated.
+---
+
+## Docker support
+
+You can build and run **tui-li** in Docker using the included multi-stage `Dockerfile`.
+
+### Build the image
+
+```bash
+# Build with latest Rust-on-Alpine and latest Alpine runtime
+docker build -t tui-li:latest .
+```
+
+> If you prefer to pin versions, edit the `FROM` lines in the Dockerfile:
+> - `FROM rust:alpine`  → `FROM rust:1.89-alpine3.22`
+> - `FROM alpine:latest` → `FROM alpine:3.22.1`
+
+### Run the container
+
+```bash
+docker run --rm -p 3000:3000   -e HOST=0.0.0.0   -e PORT=3000   -e RUST_LOG=info   --name tui-li   tui-li:latest
+```
+
+Open: [http://127.0.0.1:3000/health](http://127.0.0.1:3000/health)
 
 ---
 
@@ -86,9 +109,6 @@ Content-Type: application/json
 }
 ```
 
-**Validation errors**
-- `400 Bad Request` if payload is invalid (e.g., missing `long_url` or invalid JSON)
-
 ---
 
 ### Redirect
@@ -107,18 +127,15 @@ GET /{id}
 
 ---
 
-## Example usage (curl)
+### Example (curl)
 
 ```bash
 # health
 curl -i http://127.0.0.1:3000/health
 
 # create a short url
-curl -i -X POST http://127.0.0.1:3000/shorten \
-  -H 'Content-Type: application/json' \
-  -d '{"long_url":"https://example.com"}'
+curl -i -X POST http://127.0.0.1:3000/shorten   -H 'Content-Type: application/json'   -d '{"long_url":"https://example.com"}'
 
-# suppose the response was: { "id": "abc123", "long_url": "https://example.com" }
-# follow the redirect
+# follow the redirect (replace abc123 with the returned id)
 curl -i http://127.0.0.1:3000/abc123
 ```
