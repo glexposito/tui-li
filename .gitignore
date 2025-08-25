@@ -18,6 +18,27 @@ Desktop.ini
 Cargo.lock        # (ignore if you're making a library, commit if it's a binary project)
 .cargo/
 .cargo-ok
+/target/
+/Cargo.lock
+**/*.rs.bk
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+
+# VSCode
+.vscode/
+
+# Others
+.DS_Store
+
 
 # Logs
 *.log

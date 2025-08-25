@@ -1,0 +1,82 @@
+name: CI - Test, Build & Push Docker
+
+on:
+  push:
+    branches: [ main ]    # adjust if your default branch is different
+    tags: [ 'v*' ]        # push Docker image with the same tag when you create git tags like v1.2.3
+
+env:
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/tui-li
+
+jobs:
+  test:
+    name: Rust tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install stable Rust toolchain
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      # Cache target/ and cargo registry/git to speed up builds
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      # Optional: ensure Cargo.lock is respected for reproducible builds
+      - name: Run tests
+        run: cargo test --locked --all-features --all-targets --verbose
+
+  docker:
+    name: Build & Push Docker image
+    runs-on: ubuntu-latest
+    needs: [ test ]
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Set up QEMU and Buildx (multi-arch capable; we’ll build amd64 for Lightsail)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Log in to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Generate Docker tags/labels automatically from branch/tag/sha
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha
+            # “latest” on default branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            # When pushing git tags like v1.2.3 → tag image v1.2.3
+            type=ref,event=tag
+
+      # Build & push (Linux/amd64 so it runs on Lightsail)
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
