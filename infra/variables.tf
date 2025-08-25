@@ -20,7 +20,7 @@ variable "scale" {
 
 variable "container_name" {
   type    = string
-  default = "api"
+  default = "tui-li-api"
 }
 
 variable "container_port" {
@@ -36,4 +36,5 @@ variable "health_check_path" {
 variable "container_image" {
   type = string
   description = "Public Docker image reference (Docker Hub, ECR, etc.)"
+  default     = "glexposito/tui-li:latest"
 }
