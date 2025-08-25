@@ -1,0 +1,23 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+
+env:
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/tui-li-api
+
+jobs:
+  tests:
+    uses: ./.github/workflows/test.yml
+
+  docker:
+    needs: tests
+    uses: ./.github/workflows/docker.yml
+    with:
+      image_name: ${{ env.IMAGE_NAME }}
+
+  terraform:
+    needs: docker
+    uses: ./.github/workflows/terraform.yml

@@ -6,7 +6,7 @@ resource "aws_lightsail_container_service" "service" {
 
   tags = {
     app         = var.service_name
-    environment = "dev"       # adjust as needed: dev | staging | prod
+    environment = "prod"       # adjust as needed: dev | staging | prod
     managed_by  = "terraform" # helpful for AWS console clarity
   }
 }
