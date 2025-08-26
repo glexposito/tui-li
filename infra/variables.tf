@@ -36,5 +36,5 @@ variable "health_check_path" {
 variable "container_image" {
   type = string
   description = "Public Docker image reference (Docker Hub, ECR, etc.)"
-  default     = "glexposito/tui-li:latest"
+  default     = "glexposito/tui-li-api:latest"
 }
