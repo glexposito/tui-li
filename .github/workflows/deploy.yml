@@ -12,8 +12,9 @@ jobs:
   docker:
     needs: tests
     uses: ./.github/workflows/docker.yml
-    secrets: inherit  # lets the called workflow use DOCKERHUB_* secrets
-
+    with:
+      image_name: ${{ vars.IMAGE_NAME }}   
+    secrets: inherit                       
   terraform:
     needs: docker
     uses: ./.github/workflows/terraform.yml
