@@ -21,7 +21,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ inputs.image_name }}
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/tui-li-api
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
