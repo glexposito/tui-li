@@ -15,7 +15,11 @@ jobs:
     with:
       image_name: ${{ vars.IMAGE_NAME }}   
     secrets: inherit                       
+  
   terraform:
     needs: docker
     uses: ./.github/workflows/terraform.yml
     secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
