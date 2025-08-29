@@ -11,12 +11,8 @@ async fn test_redirect_url_not_found() {
     // Arrange
     let store = web::Data::new(Mutex::new(UrlStore::new()));
 
-    let app = test::init_service(
-        App::new()
-            .app_data(store.clone())
-            .configure(routes::config),
-    )
-    .await;
+    let app =
+        test::init_service(App::new().app_data(store.clone()).configure(routes::config)).await;
 
     // Act
     let req = test::TestRequest::get().uri("/does-not-exist").to_request();
