@@ -1,18 +1,23 @@
-use actix_web::{web, HttpResponse, Responder};
-use crate::services::shortener::UrlStore;
+use crate::services::shortener_service::ShortenerService;
+use actix_web::{HttpResponse, Responder, web};
+use serde_json::json;
 
 pub async fn redirect_url(
-    store: web::Data<std::sync::Mutex<UrlStore>>,
+    service: web::Data<ShortenerService>,
     path: web::Path<String>,
 ) -> impl Responder {
-    let store = store.lock().unwrap();
     let id = path.into_inner();
 
-    if let Some(url) = store.get_url(&id) {
-        HttpResponse::Found()
+    match service.resolve(&id).await {
+        Ok(Some(url)) => HttpResponse::Found()
             .append_header(("Location", url))
-            .finish()
-    } else {
-        HttpResponse::NotFound().body("URL not found")
+            .finish(),
+
+        Ok(None) => HttpResponse::NotFound().body("URL not found"),
+
+        Err(e) => HttpResponse::InternalServerError().json(json!({
+            "error": "shorten_failed",
+            "message": e.to_string(),
+        })),
     }
 }

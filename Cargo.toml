@@ -3,13 +3,6 @@ name = "tui-li"
 version = "0.1.0"
 edition = "2024"
 
-[features]
-default = [ "sqlite" ]
-dynamodb = [ "toasty/dynamodb" ]
-mysql = [ "toasty/mysql" ]
-postgresql = [ "toasty/postgresql" ]
-sqlite = [ "toasty/sqlite" ]
-
 [dependencies]
 actix-web = "4"
 serde = { version = "1", features = ["derive"] }
@@ -19,5 +12,13 @@ normalize-url-rs = "0.2"
 url = "2.5.7"
 chrono = "0.4.41"
 anyhow = "1.0.99"
-toasty = { git = "https://github.com/tokio-rs/toasty" }
+aws-config = "1.8.5"
+aws-sdk-dynamodb = "1.92.0"
+serde_dynamo = { version = "4", features = ["aws-sdk-dynamodb+1"] }
+sha2 = "0.10.9"
+hex = "0.4.3"
 
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "z"   # or "s"

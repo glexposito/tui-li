@@ -1,10 +1,9 @@
+use crate::services::shortener_service::ShortenerService;
 use actix_web::{HttpResponse, Responder, web};
 use normalize_url_rs::{Options, OptionsBuilder, normalize_url};
 use serde::Deserialize;
 use serde_json::json;
 use url::Url;
-
-use crate::services::shortener::UrlStore;
 
 fn invalid_url(msg: &'static str) -> HttpResponse {
     HttpResponse::BadRequest().json(json!({
@@ -20,7 +19,7 @@ pub struct ShortenRequest {
 }
 
 pub async fn shorten_url(
-    store: web::Data<std::sync::Mutex<UrlStore>>,
+    service: web::Data<ShortenerService>,
     body: web::Json<ShortenRequest>,
 ) -> impl Responder {
     // Normalize (url-normalizer 0.2 expects a Url)
@@ -42,8 +41,14 @@ pub async fn shorten_url(
         Err(_) => return invalid_url("Provide a valid absolute URL with http/https."),
     };
 
-    let mut store = store.lock().unwrap();
-    let mapping = store.add_url(normalized);
-
-    HttpResponse::Ok().json(mapping)
+    match service.shorten(&normalized).await {
+        Ok(id) => HttpResponse::Ok().json(json!({
+            "id": id,
+            "long_url": normalized,
+        })),
+        Err(e) => HttpResponse::InternalServerError().json(json!({
+            "error": "shorten_failed",
+            "message": e.to_string(),
+        })),
+    }
 }

@@ -1,44 +1,70 @@
+use anyhow::Result;
+use aws_sdk_dynamodb::types::{Put, TransactWriteItem};
+use aws_sdk_dynamodb::{Client, types::AttributeValue as Av};
+// import the SDK v1 adapters:
 use crate::models::url_item::UrlItem;
-use toasty::db::Db as ToastyDb;
+use serde_dynamo::aws_sdk_dynamodb_1::{from_item, to_item};
 
 pub struct UrlStore {
-    db: ToastyDb,
+    client: Client,
+    table: String,
 }
 
 impl UrlStore {
-    pub async fn get_by_id(&self, id: &str) -> anyhow::Result<UrlItem> {
-        let pk = format!("ID#{id}");
-        UrlItem::get_by_pk(&self.db, &pk).await
+    pub fn new(client: Client) -> Self {
+        Self {
+            client,
+            table: "url".to_string(),
+        }
     }
 
-    pub async fn get_by_url_hash(&self, hash: &str) -> anyhow::Result<UrlItem> {
-        let pk = format!("URL#{hash}");
-        UrlItem::get_by_pk(&self.db, &pk).await
+    pub async fn get_by_pk(&self, pk: &str) -> Result<Option<UrlItem>> {
+        let out = self
+            .client
+            .get_item()
+            .table_name(&self.table)
+            .key("pk", Av::S(pk.to_string()))
+            .send()
+            .await?;
+
+        match out.item() {
+            Some(item) => {
+                let model: UrlItem = from_item(item.clone())?;
+                Ok(Some(model))
+            }
+            None => Ok(None),
+        }
     }
 
-    pub async fn create(&self, id: &str, long_url: &str, hash: &str) -> anyhow::Result<()> {
-        let created_at = chrono::Utc::now().to_rfc3339();
+    pub async fn create_many<I>(&self, items: I) -> Result<()>
+    where
+        I: IntoIterator<Item = UrlItem>,
+    {
+        // Build TransactWriteItem vec
+        let mut transact_items = Vec::new();
+        for it in items {
+            let map = to_item(it)?;
+            let put = Put::builder()
+                .table_name(&self.table)
+                .set_item(Some(map))
+                .condition_expression("attribute_not_exists(pk)")
+                .build()?;
+            transact_items.push(TransactWriteItem::builder().put(put).build());
+        }
 
-        // two rows: ID#... (canonical) and URL#... (reverse pointer)
-        let canonical_row = UrlItem::create()
-            .pk(format!("ID#{id}"))
-            .id(id.to_string())
-            .long_url(long_url.to_string())
-            .created_at(created_at.clone())
-            .ttl(None);
+        // Enforce the 25-item limit for a single atomic transaction
+        if transact_items.len() > 25 {
+            // You can either error or chunk. Error keeps atomicity guarantees clear.
+            anyhow::bail!(
+                "Too many items for a single DynamoDB transaction (max 25). Got {}",
+                transact_items.len()
+            );
+        }
 
-        let reverse_pointer = UrlItem::create()
-            .pk(format!("URL#{hash}"))
-            .id(id.to_string())
-            .long_url(long_url.to_string())
-            .created_at(created_at)
-            .ttl(None);
-
-        // pure-Toasty path (note: not atomic across the two writes)
-        UrlItem::create_many()
-            .item(canonical_row)
-            .item(reverse_pointer)
-            .exec(&self.db)
+        self.client
+            .transact_write_items()
+            .set_transact_items(Some(transact_items))
+            .send()
             .await?;
 
         Ok(())

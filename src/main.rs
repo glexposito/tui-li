@@ -1,17 +1,27 @@
 use actix_web::{App, HttpServer, web};
-use std::sync::Mutex;
-
-mod models;
-mod routes;
-mod services;
-
-use services::shortener::UrlStore;
+use tui_li::routes;
+use tui_li::services::shortener_service::ShortenerService;
+use tui_li::stores::db::{ensure_table, make_ddb_client};
+use tui_li::stores::url_store::UrlStore;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let url_store = web::Data::new(Mutex::new(UrlStore::new()));
+    // build DynamoDB client
+    let client = make_ddb_client().await;
 
-    // Read HOST/PORT from env (defaults keep your current local behavior)
+    if let Err(e) = ensure_table(&client, "url").await {
+        eprintln!("⚠️ failed to ensure table in local mode: {e:?}");
+    } else {
+        println!("📦 ensured table `url` for local DynamoDB");
+    }
+
+    let store = UrlStore::new(client);
+    let service = ShortenerService::new(store);
+
+    // wrap in Arc<Data>
+    let service_data = web::Data::new(service);
+
+    // env config
     let host = std::env::var("HOST").unwrap_or_else(|_| "0.0.0.0".into());
     let port: u16 = std::env::var("PORT")
         .ok()
@@ -22,7 +32,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .app_data(url_store.clone())
+            .app_data(service_data.clone())
             .configure(routes::config)
     })
     .bind((host.as_str(), port))?
