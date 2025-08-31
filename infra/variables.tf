@@ -38,3 +38,30 @@ variable "container_image" {
   description = "Public Docker image reference (Docker Hub, ECR, etc.)"
   default     = "glexposito/tui-li-api:latest"
 }
+
+variable "app_aws_access_key_id" {
+  type      = string
+  sensitive = true
+}
+
+variable "app_aws_secret_access_key" {
+  type      = string
+  sensitive = true
+}
+
+# ===== DynamoDB =====
+variable "dynamodb_table_name" {
+  type    = string
+  default = "tui-li-urls"
+}
+
+# (Optional) if you want TTL GC
+variable "dynamodb_ttl_enabled" {
+  type    = bool
+  default = true
+}
+
+variable "dynamodb_ttl_attr" {
+  type    = string
+  default = "ttl"
+}

@@ -7,15 +7,16 @@ use tui_li::stores::url_store::UrlStore;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // build DynamoDB client
+    let table = "tui-li-urls";
     let client = make_ddb_client().await;
 
-    if let Err(e) = ensure_table(&client, "url").await {
+    if let Err(e) = ensure_table(&client, table).await {
         eprintln!("⚠️ failed to ensure table in local mode: {e:?}");
     } else {
         println!("📦 ensured table `url` for local DynamoDB");
     }
 
-    let store = UrlStore::new(client);
+    let store = UrlStore::new(client, table.to_string());
     let service = ShortenerService::new(store);
 
     // wrap in Arc<Data>

@@ -38,9 +38,10 @@ pub async fn setup_service_with_client() -> (web::Data<ShortenerService>, Client
 
     let client = Client::new(&cfg);
 
-    ensure_table(&client, "url").await.expect("ensure_table");
+    let table = "tui-li-urls";
+    ensure_table(&client, table).await.expect("ensure_table");
 
-    let store = UrlStore::new(client.clone());
+    let store = UrlStore::new(client.clone(), table.to_string());
     let service = ShortenerService::new(store);
     let shortener_service = web::Data::new(service);
 

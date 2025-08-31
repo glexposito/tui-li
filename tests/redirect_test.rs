@@ -30,7 +30,7 @@ async fn test_redirect_url_found() {
 
     seed_url(
         &client,
-        "url",
+        "tui-li-urls",
         id,
         long_url,
         "2025-08-30T09:54:27.319522346+00:00",

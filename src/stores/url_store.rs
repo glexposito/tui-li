@@ -11,10 +11,10 @@ pub struct UrlStore {
 }
 
 impl UrlStore {
-    pub fn new(client: Client) -> Self {
+    pub fn new(client: Client, table: String) -> Self {
         Self {
             client,
-            table: "url".to_string(),
+            table,
         }
     }
 
