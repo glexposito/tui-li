@@ -1,18 +1,15 @@
+use crate::helpers::{seed_url, setup_service_with_client};
 use actix_web::{
-    App,
     http::{StatusCode, header},
-    test, web,
+    test,
 };
-use std::sync::Mutex;
-use tui_li::{routes, services::shortener::UrlStore};
+mod helpers;
 
 #[actix_web::test]
 async fn test_redirect_url_not_found() {
     // Arrange
-    let store = web::Data::new(Mutex::new(UrlStore::new()));
-
-    let app =
-        test::init_service(App::new().app_data(store.clone()).configure(routes::config)).await;
+    let (service_data, _guard) = helpers::setup_service().await;
+    let app = helpers::init_app(service_data.clone()).await;
 
     // Act
     let req = test::TestRequest::get().uri("/does-not-exist").to_request();
@@ -26,16 +23,25 @@ async fn test_redirect_url_not_found() {
 async fn test_redirect_url_found() {
     // Arrange
     let long_url = "https://example.com";
-    let mut url_store = UrlStore::new();
-    let url_mapping = url_store.add_url(long_url.to_string());
-    let store = web::Data::new(Mutex::new(url_store));
+    let id = "g6teal";
 
-    let app =
-        test::init_service(App::new().app_data(store.clone()).configure(routes::config)).await;
+    let (service_data, client, _guard) = setup_service_with_client().await;
+    let app = helpers::init_app(service_data.clone()).await;
+
+    seed_url(
+        &client,
+        "url",
+        id,
+        long_url,
+        "2025-08-30T09:54:27.319522346+00:00",
+        "100680ad546ce6a577f42f52df33b4cfdca756859e664b8d7de329b150d09ce9",
+    )
+    .await
+    .unwrap();
 
     // Act
     let redirect_req = test::TestRequest::get()
-        .uri(&format!("/{}", url_mapping.id))
+        .uri(&format!("/{}", id))
         .to_request();
     let redirect_resp = test::call_service(&app, redirect_req).await;
 
@@ -47,5 +53,5 @@ async fn test_redirect_url_found() {
         .unwrap()
         .to_str()
         .unwrap();
-    assert_eq!(location, "https://example.com");
+    assert_eq!(location, long_url);
 }

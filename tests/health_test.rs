@@ -1,15 +1,10 @@
-use std::sync::Mutex;
-use actix_web::{App, http::StatusCode, test, web};
+use actix_web::{App, http::StatusCode, test};
 use tui_li::routes;
-use tui_li::services::shortener::UrlStore;
 
 #[actix_web::test]
 async fn test_health() {
-    let store = web::Data::new(Mutex::new(UrlStore::new()));
-
     let app = test::init_service(
         App::new()
-            .app_data(store.clone()) // ⬅️ inject the same state as main()
             .configure(routes::config),
     )
         .await;
