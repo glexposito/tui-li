@@ -1,4 +1,4 @@
-name: Terraform Apply (Lightsail)
+name: Terraform Apply (Lightsail + DynamoDB)
 
 on:
   workflow_call: {}
@@ -10,6 +10,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    env:
+      TF_VAR_app_aws_access_key_id: ${{ secrets.APP_AWS_ACCESS_KEY_ID }}
+      TF_VAR_app_aws_secret_access_key: ${{ secrets.APP_AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,6 +38,3 @@ jobs:
 
       - name: Terraform apply
         run: terraform -chdir=infra apply -auto-approve tfplan
-        env:
-          TF_VAR_app_aws_access_key_id: ${{ secrets.APP_AWS_ACCESS_KEY_ID }}
-          TF_VAR_app_aws_secret_access_key: ${{ secrets.APP_AWS_SECRET_ACCESS_KEY }}
