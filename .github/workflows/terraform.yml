@@ -1,7 +1,7 @@
 name: Terraform Apply (Lightsail + DynamoDB)
 
 on:
-  workflow_call: {}
+  workflow_call: { }
 
 jobs:
   tf-apply:
@@ -34,7 +34,11 @@ jobs:
         run: terraform -chdir=infra init -input=false
 
       - name: Terraform plan
-        run: terraform -chdir=infra plan -out=tfplan -input=false
+        run: terraform -chdir=infra plan -out=tfplan -input=false \
+          -var "app_aws_access_key_id=${{ secrets.APP_AWS_ACCESS_KEY_ID }}" \
+          -var "app_aws_secret_access_key=${{ secrets.APP_AWS_SECRET_ACCESS_KEY }}"
 
       - name: Terraform apply
-        run: terraform -chdir=infra apply -auto-approve tfplan
+        run: terraform -chdir=infra apply -auto-approve tfplan \
+          -var "app_aws_access_key_id=${{ secrets.APP_AWS_ACCESS_KEY_ID }}" \
+          -var "app_aws_secret_access_key=${{ secrets.APP_AWS_SECRET_ACCESS_KEY }}"
