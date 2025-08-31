@@ -22,20 +22,18 @@ pub async fn shorten_url(
     service: web::Data<ShortenerService>,
     body: web::Json<ShortenRequest>,
 ) -> impl Responder {
-    // Normalize (url-normalizer 0.2 expects a Url)
-    let opts: Options = OptionsBuilder::default()
-        .strip_protocol(false)
-        .force_http(false)
-        .force_https(false)
-        .remove_trailing_slash(false)
-        .build()
-        .expect("options");
-
     if !matches!(body.long_url.scheme(), "http" | "https") {
         return invalid_url("Only http/https are supported.");
     }
 
     // normalize and reuse the same error shape
+    let opts: Options = OptionsBuilder::default()
+        .strip_protocol(false)
+        .force_http(false)
+        .force_https(false)
+        .build()
+        .expect("options");
+
     let normalized = match normalize_url(body.long_url.as_str(), &opts) {
         Ok(s) => s,
         Err(_) => return invalid_url("Provide a valid absolute URL with http/https."),

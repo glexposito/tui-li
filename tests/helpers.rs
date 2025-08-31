@@ -16,36 +16,10 @@ pub struct DdbGuard {
 
 /// Boot a fresh DynamoDB Local + client, ensure table, and build your service.
 /// Returns the service (as `web::Data<_>`) + a guard that holds the container.
+
 pub async fn setup_service() -> (web::Data<ShortenerService>, DdbGuard) {
-    let container = dynamodb_local::DynamoDb::default().start().await.unwrap();
-
-    let host = container.get_host().await.expect("host");
-    let port = container.get_host_port_ipv4(8000).await.expect("port");
-    let endpoint = format!("http://{host}:{port}");
-
-    let cfg = aws_config::defaults(BehaviorVersion::latest())
-        .endpoint_url(endpoint)
-        .region(Region::new("us-east-1"))
-        .credentials_provider(Credentials::for_tests())
-        .load()
-        .await;
-
-    let client = Client::new(&cfg);
-
-    // make sure your table exists
-    ensure_table(&client, "url").await.expect("ensure_table");
-
-    // wire your store + service exactly like in your test
-    let store = UrlStore::new(client.clone());
-    let service = ShortenerService::new(store);
-    let service_data = web::Data::new(service);
-
-    (
-        service_data,
-        DdbGuard {
-            _container: container,
-        },
-    )
+    let (shortener_service, _client, guard) = setup_service_with_client().await;
+    (shortener_service, guard)
 }
 
 pub async fn setup_service_with_client() -> (web::Data<ShortenerService>, Client, DdbGuard) {
@@ -68,10 +42,10 @@ pub async fn setup_service_with_client() -> (web::Data<ShortenerService>, Client
 
     let store = UrlStore::new(client.clone());
     let service = ShortenerService::new(store);
-    let service_data = web::Data::new(service);
+    let shortener_service = web::Data::new(service);
 
     (
-        service_data,
+        shortener_service,
         client,
         DdbGuard {
             _container: container,

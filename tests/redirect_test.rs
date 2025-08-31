@@ -8,8 +8,8 @@ mod helpers;
 #[actix_web::test]
 async fn test_redirect_url_not_found() {
     // Arrange
-    let (service_data, _guard) = helpers::setup_service().await;
-    let app = helpers::init_app(service_data.clone()).await;
+    let (shortener_service, _guard) = helpers::setup_service().await;
+    let app = helpers::init_app(shortener_service.clone()).await;
 
     // Act
     let req = test::TestRequest::get().uri("/does-not-exist").to_request();
@@ -25,8 +25,8 @@ async fn test_redirect_url_found() {
     let long_url = "https://example.com";
     let id = "g6teal";
 
-    let (service_data, client, _guard) = setup_service_with_client().await;
-    let app = helpers::init_app(service_data.clone()).await;
+    let (shortener_service, client, _guard) = setup_service_with_client().await;
+    let app = helpers::init_app(shortener_service.clone()).await;
 
     seed_url(
         &client,

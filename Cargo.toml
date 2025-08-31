@@ -17,13 +17,13 @@ aws-sdk-dynamodb = "1.92.0"
 serde_dynamo = { version = "4", features = ["aws-sdk-dynamodb+1"] }
 sha2 = "0.10.9"
 hex = "0.4.3"
+
+[dev-dependencies]
+actix-http = "3.11.1"
 testcontainers = "0.25.0"
-testcontainers-modules = { version = "0.13.0", features = ["postgres", "dynamodb"] }
-rstest = "0.26.1"
-uuid = "1.18.0"
-actix-http = "3.11.0"
-async-trait = "0.1.89"
-test-context = "0.4.1"
+# only enable what you use; drop postgres to speed up builds
+testcontainers-modules = { version = "0.13.0", default-features = false, features = ["dynamodb"] }
+
 
 [profile.release]
 lto = true

@@ -13,7 +13,6 @@ services:
       AWS_ACCESS_KEY_ID: local
       AWS_SECRET_ACCESS_KEY: local
       DYNAMODB_ENDPOINT: http://dynamodb:8000
-      APP_ENV: local
     ports:
       - "3000:3000"
     depends_on:
