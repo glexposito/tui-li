@@ -1,29 +1,23 @@
 # 2) Create the DynamoDB table
 resource "aws_dynamodb_table" "urls" {
-  name         = var.dynamodb_table_name
+  name         = "tui-li-urls"
   billing_mode = "PAY_PER_REQUEST"
-
-  # Single-table style: partition key only. Your code can prefix values like ID#..., URL#...
-  hash_key = "pk"
+  hash_key     = "pk"
 
   attribute {
     name = "pk"
     type = "S"
   }
 
+  ttl {
+    attribute_name = "ttl"   # the attribute your app will set with an epoch timestamp (in seconds)
+    enabled        = true    # turns TTL on
+  }
+
   tags = {
     app         = var.service_name
     environment = "prod"
     managed_by  = "terraform"
-  }
-}
-
-resource "aws_dynamodb_table_ttl" "urls_ttl" {
-  count      = var.dynamodb_ttl_enabled ? 1 : 0
-  table_name = aws_dynamodb_table.urls.name
-  ttl {
-    attribute_name = var.dynamodb_ttl_attr
-    enabled        = true
   }
 }
 
