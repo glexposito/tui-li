@@ -34,11 +34,13 @@ jobs:
         run: terraform -chdir=infra init -input=false
 
       - name: Terraform plan
-        run: terraform -chdir=infra plan -out=tfplan -input=false \
-          -var "app_aws_access_key_id=${{ secrets.APP_AWS_ACCESS_KEY_ID }}" \
-          -var "app_aws_secret_access_key=${{ secrets.APP_AWS_SECRET_ACCESS_KEY }}"
+        run: |
+          terraform -chdir=infra plan -out=tfplan -input=false \
+            -var "app_aws_access_key_id=${{ secrets.APP_AWS_ACCESS_KEY_ID }}" \
+            -var "app_aws_secret_access_key=${{ secrets.APP_AWS_SECRET_ACCESS_KEY }}"
 
       - name: Terraform apply
-        run: terraform -chdir=infra apply -auto-approve tfplan \
-          -var "app_aws_access_key_id=${{ secrets.APP_AWS_ACCESS_KEY_ID }}" \
-          -var "app_aws_secret_access_key=${{ secrets.APP_AWS_SECRET_ACCESS_KEY }}"
+        run: |
+          terraform -chdir=infra apply -auto-approve tfplan \
+            -var "app_aws_access_key_id=${{ secrets.APP_AWS_ACCESS_KEY_ID }}" \
+            -var "app_aws_secret_access_key=${{ secrets.APP_AWS_SECRET_ACCESS_KEY }}"
