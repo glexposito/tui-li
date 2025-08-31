@@ -38,6 +38,4 @@ jobs:
 
       - name: Terraform apply
         run: |
-          terraform -chdir=infra apply -auto-approve tfplan \
-            -var "app_aws_access_key_id=${{ secrets.APP_AWS_ACCESS_KEY_ID }}" \
-            -var "app_aws_secret_access_key=${{ secrets.APP_AWS_SECRET_ACCESS_KEY }}"
+          terraform -chdir=infra apply -auto-approve tfplan
