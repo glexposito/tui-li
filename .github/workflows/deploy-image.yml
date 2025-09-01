@@ -1,0 +1,67 @@
+name: Deploy Docker Image to Lightsail
+
+on:
+  workflow_call: {}   # allows other workflows to call this
+
+jobs:
+  deploy_app:
+    # dependencies are passed in by the caller, so we don't need `needs:` here
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+
+      - name: Publish Lightsail deployment (hardcoded image)
+        env:
+          SERVICE_NAME: ${{ vars.LIGHTSAIL_SERVICE }}
+          REGION:       ${{ vars.AWS_REGION }}
+          CONTAINER_NAME: api
+          IMAGE_URI:    ${{ vars.IMAGE_NAME }}
+          CONTAINER_PORT: "3000"
+          HEALTH_PATH:  "/health"
+          HOST: "0.0.0.0"
+          PORT: "3000"
+          RUST_LOG: "info"
+          AWS_REGION_ENV:  ${{ vars.AWS_REGION }}
+          AWS_ACCESS_KEY_ID_ENV:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY_ENV: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DYNAMODB_TABLE_ENV: "tui-li-urls"
+        run: |
+          aws lightsail create-container-service-deployment \
+            --region "$REGION" \
+            --service-name "$SERVICE_NAME" \
+            --containers "{
+              \"$CONTAINER_NAME\": {
+                \"image\": \"$IMAGE_URI\",
+                \"environment\": {
+                  \"HOST\": \"$HOST\",
+                  \"PORT\": \"$PORT\",
+                  \"RUST_LOG\": \"$RUST_LOG\",
+                  \"AWS_REGION\": \"$AWS_REGION_ENV\",
+                  \"AWS_ACCESS_KEY_ID\": \"$AWS_ACCESS_KEY_ID_ENV\",
+                  \"AWS_SECRET_ACCESS_KEY\": \"$AWS_SECRET_ACCESS_KEY_ENV\",
+                  \"DYNAMODB_TABLE\": \"$DYNAMODB_TABLE_ENV\"
+                },
+                \"ports\": {\"$CONTAINER_PORT\": \"HTTP\"}
+              }
+            }" \
+            --public-endpoint "{
+              \"containerName\": \"$CONTAINER_NAME\",
+              \"containerPort\": $CONTAINER_PORT,
+              \"healthCheck\": {
+                \"path\": \"$HEALTH_PATH\",
+                \"successCodes\": \"200-399\",
+                \"intervalSeconds\": 5,
+                \"timeoutSeconds\": 2,
+                \"healthyThreshold\": 2,
+                \"unhealthyThreshold\": 2
+              }
+            }"
