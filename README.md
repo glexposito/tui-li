@@ -1,11 +1,11 @@
 # tui.li — Tiny URL API (Rust + Actix-web)
 
-A minimal URL shortener API built with **Rust**, **Actix-web**, and an in-memory store.  
+A minimal URL shortener API built with **Rust**, **Actix-web**, backed by Amazon DynamoDB for persistent storage. 
 Includes a redirect endpoint, a create/shorten endpoint, and a health check.
 
 ---
 
-## Features
+## ✨ Features
 
 - `POST /shorten` — create a short code for a long URL  
 - `GET /{id}` — redirect to the original long URL  
@@ -14,126 +14,53 @@ Includes a redirect endpoint, a create/shorten endpoint, and a health check.
 
 ---
 
-## Run locally
+## 🐳 Run with Docker Compose 
 
-### Prerequisites
-- Rust (stable) installed via `rustup`
-- Cargo (bundled with Rust)
+You can build and run **tui-li** using the included `docker-compose.yaml`.  
+This will start the API, DynamoDB Local, and an optional DynamoDB Admin UI.
 
-### Run the API
-
-```bash
-cargo run
-```
-
-You should see:
-
-```
-🚀 tui-li running at http://127.0.0.1:3000
-```
-
-### Build
+### ▶️ Run the Containers
 
 ```bash
-cargo build
+docker compose up -d --build
 ```
 
-### Test
+This will start:
+- API: [http://127.0.0.1:3000](http://127.0.0.1:3000)  
+- Health check: [http://127.0.0.1:3000/health](http://127.0.0.1:3000/health)  
+- DynamoDB Local: [http://127.0.0.1:8000](http://127.0.0.1:8000)  
+- DynamoDB Admin UI: [http://127.0.0.1:8001](http://127.0.0.1:8001)  
+
+### 🔄 Rebuild the API
+
+After making code changes, rebuild just the API service:
 
 ```bash
-cargo test
+docker compose build api
+docker compose up -d api
 ```
 
----
-
-## Docker support
-
-You can build and run **tui-li** in Docker using the included multi-stage `Dockerfile`.
-
-### Build the image
+Or rebuild everything:
 
 ```bash
-# Build with latest Rust-on-Alpine and latest Alpine runtime
-docker build -t tui-li:latest .
+docker compose up -d --build
 ```
 
-> If you prefer to pin versions, edit the `FROM` lines in the Dockerfile:
-> - `FROM rust:alpine`  → `FROM rust:1.89-alpine3.22`
-> - `FROM alpine:latest` → `FROM alpine:3.22.1`
-
-### Run the container
+### 🛑 Stop Containers
 
 ```bash
-docker run --rm -p 3000:3000   -e HOST=0.0.0.0   -e PORT=3000   -e RUST_LOG=info   --name tui-li   tui-li:latest
+docker compose down        # stop containers (keep DB data)
+docker compose down -v     # stop and remove volumes (wipe DB data)
 ```
 
-Open: [http://127.0.0.1:3000/health](http://127.0.0.1:3000/health)
-
----
-
-## API
-
-### Health
-
-**Request**
-```
-GET /health
-```
-
-**Response**
-- `200 OK`
-- Body: `OK`
-
----
-
-### Shorten a URL
-
-**Request**
-```
-POST /shorten
-Content-Type: application/json
-
-{
-  "long_url": "https://example.com"
-}
-```
-
-**Success Response**
-- Status: `200 OK`
-- Body:
-```json
-{
-  "id": "abc123",
-  "long_url": "https://example.com"
-}
-```
-
----
-
-### Redirect
-
-**Request**
-```
-GET /{id}
-```
-
-**Success Response**
-- Status: `302 Found`
-- Header: `Location: https://example.com`
-
-**Not Found**
-- Status: `404 Not Found`
-
----
-
-### Example (curl)
+## 📌 Example API Usage
 
 ```bash
 # health
 curl -i http://127.0.0.1:3000/health
 
 # create a short url
-curl -i -X POST http://127.0.0.1:3000/shorten   -H 'Content-Type: application/json'   -d '{"long_url":"https://example.com"}'
+curl -i -X POST http://127.0.0.1:3000/shorten -H 'Content-Type: application/json' -d '{"long_url":"https://example.com"}'
 
 # follow the redirect (replace abc123 with the returned id)
 curl -i http://127.0.0.1:3000/abc123
