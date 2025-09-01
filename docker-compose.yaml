@@ -71,6 +71,5 @@ services:
       '
     restart: "no"
 
-
 volumes:
   dynamodb_data:
