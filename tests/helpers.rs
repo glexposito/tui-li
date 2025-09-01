@@ -2,11 +2,11 @@
 use actix_web::{App, test, web};
 use aws_config::{BehaviorVersion, Region};
 use aws_sdk_dynamodb::{Client, config::Credentials, types::AttributeValue as Av};
+use aws_sdk_dynamodb::types::{AttributeDefinition, KeySchemaElement, KeyType, ProvisionedThroughput, ScalarAttributeType};
 use testcontainers::ContainerAsync;
 use testcontainers_modules::{dynamodb_local, testcontainers::runners::AsyncRunner};
 use tui_li::routes;
 use tui_li::services::shortener_service::ShortenerService;
-use tui_li::stores::db::ensure_table;
 use tui_li::stores::url_store::UrlStore;
 
 /// Keeps DynamoDB Local alive for the whole test (drops -> container stops)
@@ -94,6 +94,39 @@ pub async fn seed_url(
         .item("long_url", Av::S(long_url.to_string()))
         .item("created_at", Av::S(created_at_rfc3339.to_string()))
         .condition_expression("attribute_not_exists(pk)")
+        .send()
+        .await?;
+
+    Ok(())
+}
+
+async fn ensure_table(client: &Client, table_name: &str) -> anyhow::Result<()> {
+    let tables = client.list_tables().send().await?;
+    if tables.table_names().contains(&table_name.to_string()) {
+        return Ok(()); // already exists
+    }
+
+    client
+        .create_table()
+        .table_name(table_name)
+        .key_schema(
+            KeySchemaElement::builder()
+                .attribute_name("pk")
+                .key_type(KeyType::Hash)
+                .build()?,
+        )
+        .attribute_definitions(
+            AttributeDefinition::builder()
+                .attribute_name("pk")
+                .attribute_type(ScalarAttributeType::S)
+                .build()?,
+        )
+        .provisioned_throughput(
+            ProvisionedThroughput::builder()
+                .read_capacity_units(5)
+                .write_capacity_units(5)
+                .build()?,
+        )
         .send()
         .await?;
 
