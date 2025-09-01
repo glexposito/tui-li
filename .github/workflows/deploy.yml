@@ -5,6 +5,10 @@ on:
     branches: [ main ]
     tags: [ 'v*' ]
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   tests:
     uses: ./.github/workflows/test.yml
@@ -13,18 +17,15 @@ jobs:
     needs: tests
     uses: ./.github/workflows/docker.yml
     with:
-      image_name: ${{ vars.IMAGE_NAME }}   
-    secrets: inherit                       
-  
+      image_name: ${{ vars.IMAGE_NAME }}
+    secrets: inherit
+
   terraform:
     needs: docker
     uses: ./.github/workflows/terraform.yml
     secrets: inherit
-    permissions:
-      id-token: write
-      contents: read
 
-  deploy_app:
+  deploy_container:
     needs: terraform
-    uses: ./.github/workflows/deploy-image.yml
+    uses: ./.github/workflows/deploy-container.yml
     secrets: inherit

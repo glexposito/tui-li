@@ -1,4 +1,4 @@
-name: Deploy Docker Image to Lightsail
+name: Deploy Container to Lightsail
 
 on:
   workflow_call: {}   # allows other workflows to call this
@@ -11,7 +11,8 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Configure AWS (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -19,7 +20,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
-      - name: Publish Lightsail deployment (hardcoded image)
+      - name: Deploy Container to Lightsail
         env:
           SERVICE_NAME: ${{ vars.LIGHTSAIL_SERVICE }}
           REGION:       ${{ vars.AWS_REGION }}
