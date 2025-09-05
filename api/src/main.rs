@@ -1,6 +1,4 @@
-use actix_governor::Governor;
 use actix_web::{App, HttpServer, web};
-use tui_li::middleware::rate_limiter::rate_limiter_config;
 use tui_li::routes;
 use tui_li::services::shortener_service::ShortenerService;
 use tui_li::stores::db::make_ddb_client;
@@ -22,15 +20,11 @@ async fn main() -> std::io::Result<()> {
         .and_then(|p| p.parse().ok())
         .unwrap_or(3000);
 
-    let governor_conf = rate_limiter_config();
-
     println!("🚀 tui-li running at http://{host}:{port}");
 
     HttpServer::new(move || {
         App::new()
             .app_data(service_data.clone())
-            // apply globally (affects every endpoint)
-            .wrap(Governor::new(&governor_conf))
             .configure(routes::config)
     })
     .bind((host.as_str(), port))?
