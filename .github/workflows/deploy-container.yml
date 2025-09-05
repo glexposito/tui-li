@@ -5,6 +5,7 @@ on:
 
 jobs:
   deploy_app:
+    name: Deploy Container to Lightsail
     # dependencies are passed in by the caller, so we don't need `needs:` here
     runs-on: ubuntu-latest
     permissions:
@@ -26,7 +27,7 @@ jobs:
           REGION:       ${{ vars.AWS_REGION }}
           CONTAINER_NAME: api
           IMAGE_URI:    ${{ vars.IMAGE_NAME }}
-          CONTAINER_PORT: "3000"
+          CONTAINER_PORT: "80"
           HEALTH_PATH:  "/health"
           HOST: "0.0.0.0"
           PORT: "3000"
