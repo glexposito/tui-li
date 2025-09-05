@@ -6,7 +6,7 @@ use tui_li::routes;
 
 #[actix_web::test]
 async fn test_rate_limiter() {
-    // apply the global rate limiter (1 token/s, burst 20)
+    // apply the global rate limiter (3 token/s, burst 20)
     let conf = rate_limiter_config();
     let app = test::init_service(
         App::new()
