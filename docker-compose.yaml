@@ -1,23 +1,25 @@
 services:
-  api:
+  app:
+    image: tui-li/app:local
     build:
       context: .
       dockerfile: Dockerfile
-    pull_policy: never   # always build local, never pull
-    container_name: tui-li-api
+    pull_policy: never
+    container_name: tui-li
+    ports:
+      - "8080:80"        # use http://localhost:8080
+      # optional: debug direct API (bypass nginx)
+      - "3000:3000"
     environment:
-      HOST: 0.0.0.0
+      HOST: 0.0.0.0      # Rust binds all interfaces
       PORT: 3000
       RUST_LOG: info
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: local
       AWS_SECRET_ACCESS_KEY: local
       DYNAMODB_ENDPOINT: http://dynamodb:8000
-    ports:
-      - "3000:3000"
     depends_on:
       - dynamodb
-    command: [ "tui-li" ]
     restart: unless-stopped
 
   dynamodb:
