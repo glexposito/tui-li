@@ -1,23 +1,36 @@
-# tui.li — Tiny URL API (Rust + Actix-web)
+# 🐦 tui.li — Tiny URL Shortener (Rust + React)
 
-A minimal URL shortener API built with **Rust**, **Actix-web**, backed by Amazon DynamoDB for persistent storage. 
-Includes a redirect endpoint, a create/shorten endpoint, and a health check.
+A minimal **URL shortener** built with **Rust** (Actix-web) for the API and **React + Vite** for the frontend.  
+The backend uses Amazon DynamoDB for persistent storage. Everything is bundled together in one container with **Nginx** serving the UI and reverse-proxying requests to the API.
 
 ---
 
 ## ✨ Features
 
-- `POST /shorten` — create a short code for a long URL  
-- `GET /{id}` — redirect to the original long URL  
-- `GET /health` — liveness probe  
-- Simple in-memory `UrlStore` (behind `Mutex`)  
+- **Frontend**
+  - React UI
+  - Copy-to-clipboard short links
+  - Error states: invalid URL, rate-limit, server errors
+- **Backend API**
+  - `POST /shorten` — create a short code for a long URL  
+  - `GET /{id}` — redirect to the original long URL  
+  - `GET /health` — health/liveness probe  
+- **Storage**
+  - DynamoDB for persistent short link storage  
+- **Deployment**
+  - Single container running both UI (Nginx) and API (Rust)  
 
 ---
 
-## 🐳 Run with Docker Compose 
+## 🐳 Run with Docker Compose
 
-You can build and run **tui-li** using the included `docker-compose.yaml`.  
-This will start the API, DynamoDB Local, and an optional DynamoDB Admin UI.
+The included `docker-compose.yaml` starts:
+
+- **App** (Rust API + React UI via Nginx) → [http://localhost:8080](http://localhost:8080)  
+  - UI served at `/`
+  - API proxied under `/shorten` and `/{id}`  
+- **DynamoDB Local** → [http://localhost:8000](http://localhost:8000)  
+- **DynamoDB Admin UI** (optional) → [http://localhost:8001](http://localhost:8001)
 
 ### ▶️ Run the Containers
 
@@ -25,19 +38,17 @@ This will start the API, DynamoDB Local, and an optional DynamoDB Admin UI.
 docker compose up -d --build
 ```
 
-This will start:
-- API: [http://127.0.0.1:3000](http://127.0.0.1:3000)  
-- Health check: [http://127.0.0.1:3000/health](http://127.0.0.1:3000/health)  
-- DynamoDB Local: [http://127.0.0.1:8000](http://127.0.0.1:8000)  
-- DynamoDB Admin UI: [http://127.0.0.1:8001](http://127.0.0.1:8001)  
+Then open [http://localhost:8080](http://localhost:8080) in your browser 🎉
 
-### 🔄 Rebuild the API
+---
 
-After making code changes, rebuild just the API service:
+## 🔄 Rebuild
+
+After making changes to the API or UI:
 
 ```bash
-docker compose build api
-docker compose up -d api
+docker compose build app
+docker compose up -d app
 ```
 
 Or rebuild everything:
@@ -46,22 +57,28 @@ Or rebuild everything:
 docker compose up -d --build
 ```
 
-### 🛑 Stop Containers
+---
+
+## 🛑 Stop Containers
 
 ```bash
 docker compose down        # stop containers (keep DB data)
 docker compose down -v     # stop and remove volumes (wipe DB data)
 ```
 
+---
+
 ## 📌 Example API Usage
+
+The API is still accessible directly on port 3000 if you bypass Nginx:
 
 ```bash
 # health
-curl -i http://127.0.0.1:3000/health
+curl -i http://localhost:8080/health
 
 # create a short url
-curl -i -X POST http://127.0.0.1:3000/shorten -H 'Content-Type: application/json' -d '{"long_url":"https://example.com"}'
+curl -i -X POST http://localhost:8080/shorten -H 'Content-Type: application/json' -d '{"long_url":"https://example.com"}'
 
 # follow the redirect (replace abc123 with the returned id)
-curl -i http://127.0.0.1:3000/abc123
+curl -i http://localhost:8080/abc123
 ```

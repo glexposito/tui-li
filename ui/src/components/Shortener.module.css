@@ -1,0 +1,17 @@
+.fadeSlot {
+  min-height: 40px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fadeSlot {
+    transition: none;
+  }
+}

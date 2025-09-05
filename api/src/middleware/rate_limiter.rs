@@ -7,12 +7,12 @@ use actix_governor::{
 
 /// Build the global rate limiter config.
 ///
-/// - 1 token every second (≈ 1 RPS sustained)
+/// - 3 token every second (≈ 1 RPS sustained)
 /// - Burst size = 20
 // src/middleware/rate_limiter.rs
 pub fn rate_limiter_config() -> GovernorConfig<PeerIpKeyExtractor, NoOpMiddleware> {
     GovernorConfigBuilder::default()
-        .seconds_per_request(1)
+        .seconds_per_request(3)
         .burst_size(20)
         .finish()
         .expect("valid governor config")
