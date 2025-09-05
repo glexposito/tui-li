@@ -22,16 +22,6 @@ resource "aws_dynamodb_table" "urls" {
 }
 
 # 2) Create the Lightsail Container Service
-resource "aws_lightsail_certificate" "tui-li" {
-  name        = "tui-li-certificate"
-  domain_name = "tuili.kiwi"
-
-  subject_alternative_names = [
-    "www.tuili.kiwi",
-    "api.tuili.kiwi"
-  ]
-}
-
 resource "aws_lightsail_container_service" "service" {
   name  = var.service_name
   power = var.power
@@ -39,7 +29,7 @@ resource "aws_lightsail_container_service" "service" {
 
   public_domain_names {
     certificate {
-      certificate_name = aws_lightsail_certificate.tui-li.name
+      certificate_name = var.certificate_name 
       domain_names     = ["tuili.kiwi", "www.tuili.kiwi", "api.tuili.kiwi"]
     }
   }

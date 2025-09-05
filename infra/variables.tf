@@ -1,3 +1,4 @@
+# ===== Lightsail =====
 variable "region" {
   type    = string
   default = "ap-southeast-2"
@@ -16,6 +17,12 @@ variable "power" {
 variable "scale" {
   type    = number
   default = 1
+}
+
+variable "certificate_name" {
+  description = "Existing Lightsail certificate name"
+  type        = string
+  default     = "tui-li-certificate"  # must match exactly in Lightsail
 }
 
 # ===== DynamoDB =====
