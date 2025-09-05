@@ -11,9 +11,11 @@ permissions:
 
 jobs:
   tests:
+    name: Tests
     uses: ./.github/workflows/test.yml
 
   docker:
+    name: Container Image
     needs: tests
     uses: ./.github/workflows/docker.yml
     with:
@@ -21,11 +23,14 @@ jobs:
     secrets: inherit
 
   terraform:
+    name: Infrastructure as Code
     needs: docker
     uses: ./.github/workflows/terraform.yml
     secrets: inherit
 
   deploy_container:
+    name: Deploy
     needs: terraform
     uses: ./.github/workflows/deploy-container.yml
     secrets: inherit
+
