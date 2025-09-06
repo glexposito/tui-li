@@ -3,6 +3,19 @@ import { useShortenMutation } from './useShortenMutation';
 import isURL from "validator/lib/isURL";
 import styles from './Shortener.module.css';
 
+/** Strip leading "www." from a URL origin (keeps protocol/port; localhost unaffected) */
+function canonicalizeOrigin(raw: string) {
+  try {
+    const u = new URL(raw);
+    if (u.hostname.startsWith('www.')) {
+      u.hostname = u.hostname.slice(4);
+    }
+    return u.origin;
+  } catch {
+    return raw;
+  }
+}
+
 /** One consistent error wrapper: same icon + classes; only message text varies */
 function ErrorMessage({
   clientError,
@@ -21,9 +34,9 @@ function ErrorMessage({
 
     if (status === 429) {
       message = `Whoa there, turbo! You’ve hit the rate limit.${retryAfter != null
-          ? ` Try again in about ${retryAfter} second${retryAfter === 1 ? '' : 's'}.`
-          : ' Take a quick breather and try again.'
-        }`;
+        ? ` Try again in about ${retryAfter} second${retryAfter === 1 ? '' : 's'}.`
+        : ' Take a quick breather and try again.'
+      }`;
     } else if (status === 400 || status === 422) {
       message = 'The URL you entered doesn’t look valid. Please double-check and try again.';
     } else if (status === 500) {
@@ -85,7 +98,7 @@ export default function Shortener() {
   const [clientError, setClientError] = useState<string | null>(null);
 
   const origin =
-    typeof window !== 'undefined' ? window.location.origin : 'https://tuili.kiwi';
+    typeof window !== 'undefined' ? canonicalizeOrigin(window.location.origin) : 'https://tuili.kiwi';
 
   const handleShorten = () => {
     setClientError(null);
