@@ -5,7 +5,7 @@ on:
 
 jobs:
   tf-apply:
-    name: Terraform Apply (Lightsail)
+    name: Terraform Apply (Lightsail + DynamoDB)
     runs-on: ubuntu-latest
     permissions:
       id-token: write

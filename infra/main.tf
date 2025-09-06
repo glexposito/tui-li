@@ -30,7 +30,7 @@ resource "aws_lightsail_container_service" "service" {
   public_domain_names {
     certificate {
       certificate_name = var.certificate_name 
-      domain_names     = ["tuili.kiwi", "www.tuili.kiwi", "api.tuili.kiwi"]
+      domain_names     = ["api.tuili.kiwi", "tuili.kiwi", "www.tuili.kiwi"]
     }
   }
 

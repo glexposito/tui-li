@@ -5,7 +5,7 @@ on:
 
 jobs:
   rust-tests:
-    name: Rust (api/) tests
+    name: Run Rust (api/) tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -27,7 +27,7 @@ jobs:
         run: cargo test --locked --all-features --all-targets --verbose
 
   ui-tests:
-    name: React UI (ui/) tests
+    name: Run React UI (ui/) tests
     runs-on: ubuntu-latest
     defaults:
       run:
