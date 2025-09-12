@@ -43,13 +43,12 @@ describe('Shortener component', () => {
   it('renders the short link on success', () => {
     const mock = baseMock();
     mock.isSuccess = true;
-    mock.data = { id: 'AbCd12', long_url: 'https://example.com' };
+    mock.data = { short_url: 'https://tuili.kiwi/AbCd12', long_url: 'https://example.com' };
     mockedUseShortenMutation.mockReturnValue(mock);
 
     render(<Shortener />);
 
-    const origin = window.location.origin; // jsdom default is "http://localhost"
-    const expectedText = `${origin}/AbCd12`;
+    const expectedText = 'https://tuili.kiwi/AbCd12';
 
     expect(screen.getByText('Short link:')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: expectedText })).toBeInTheDocument();
@@ -110,7 +109,7 @@ describe('Shortener component', () => {
 
     const mock = baseMock();
     mock.isSuccess = true;
-    mock.data = { id: 'K4PkNm', long_url: 'https://google.com' };
+    mock.data = { short_url: 'https://tuili.kiwi/K4PkNm', long_url: 'https://google.com' };
     mockedUseShortenMutation.mockReturnValue(mock);
 
     render(<Shortener />);
@@ -118,7 +117,6 @@ describe('Shortener component', () => {
     const copyBtn = screen.getByRole('button', { name: /copy short link/i });
     await user.click(copyBtn);
 
-    const origin = window.location.origin;
-    expect(writeText).toHaveBeenCalledWith(`${origin}/K4PkNm`);
+    expect(writeText).toHaveBeenCalledWith('https://tuili.kiwi/K4PkNm');
   });
 });

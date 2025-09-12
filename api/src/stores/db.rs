@@ -1,13 +1,11 @@
+use crate::models::app_config::AppConfig;
 use aws_config;
 use aws_sdk_dynamodb::Client;
 
-pub async fn make_ddb_client() -> Client {
+pub async fn make_ddb_client(config: &AppConfig) -> Client {
     let mut loader = aws_config::defaults(aws_config::BehaviorVersion::latest());
+    loader = loader.endpoint_url(&config.dynamodb_endpoint);
 
-    if let Ok(endpoint) = std::env::var("DYNAMODB_ENDPOINT") {
-        loader = loader.endpoint_url(endpoint);
-    }
-
-    let config = loader.load().await;
-    Client::new(&config)
+    let aws_config = loader.load().await;
+    Client::new(&aws_config)
 }

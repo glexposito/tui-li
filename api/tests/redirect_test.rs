@@ -3,13 +3,14 @@ use actix_web::{
     http::{StatusCode, header},
     test,
 };
+
 mod helpers;
 
 #[actix_web::test]
 async fn test_redirect_url_not_found() {
     // Arrange
-    let (shortener_service, _guard) = helpers::setup_service().await;
-    let app = helpers::init_app(shortener_service.clone()).await;
+    let (shortener_service, config, _guard) = helpers::setup_service().await;
+    let app = helpers::init_app(shortener_service.clone(), config.clone()).await;
 
     // Act
     let req = test::TestRequest::get().uri("/does-not-exist").to_request();
@@ -25,8 +26,8 @@ async fn test_redirect_url_found() {
     let long_url = "https://example.com";
     let id = "g6teal";
 
-    let (shortener_service, client, _guard) = setup_service_with_client().await;
-    let app = helpers::init_app(shortener_service.clone()).await;
+    let (shortener_service, config, client, _guard) = setup_service_with_client().await;
+    let app = helpers::init_app(shortener_service.clone(), config.clone()).await;
 
     seed_url(
         &client,
