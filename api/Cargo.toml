@@ -17,6 +17,8 @@ aws-sdk-dynamodb = "1.92.0"
 serde_dynamo = { version = "4", features = ["aws-sdk-dynamodb+1"] }
 sha2 = "0.10.9"
 hex = "0.4.3"
+actix-governor = "0.8.0"
+governor = "0.10.1"
 
 [dev-dependencies]
 actix-http = "3.11.1"

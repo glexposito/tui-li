@@ -18,7 +18,6 @@ services:
       AWS_ACCESS_KEY_ID: local
       AWS_SECRET_ACCESS_KEY: local
       DYNAMODB_ENDPOINT: http://dynamodb:8000
-      SHORT_URL_BASE: http://127.0.0.1:8080/
     depends_on:
       - dynamodb
     restart: unless-stopped
