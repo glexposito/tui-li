@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 
 interface ShortenResponse {
-  short_url: string;
+  id: string;
   long_url: string;
 }
 
