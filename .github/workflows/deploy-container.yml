@@ -36,6 +36,7 @@ jobs:
           AWS_ACCESS_KEY_ID_ENV:     ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY_ENV: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           DYNAMODB_TABLE_ENV: "tui-li-urls"
+          SHORT_URL_BASE: "https://tuili.kiwi/"
         run: |
           aws lightsail create-container-service-deployment \
             --region "$REGION" \
@@ -50,7 +51,8 @@ jobs:
                   \"AWS_REGION\": \"$AWS_REGION_ENV\",
                   \"AWS_ACCESS_KEY_ID\": \"$AWS_ACCESS_KEY_ID_ENV\",
                   \"AWS_SECRET_ACCESS_KEY\": \"$AWS_SECRET_ACCESS_KEY_ENV\",
-                  \"DYNAMODB_TABLE\": \"$DYNAMODB_TABLE_ENV\"
+                  \"DYNAMODB_TABLE\": \"$DYNAMODB_TABLE_ENV\",
+                  \"SHORT_URL_BASE\": \"$SHORT_URL_BASE\"
                 },
                 \"ports\": {\"$CONTAINER_PORT\": \"HTTP\"}
               }
