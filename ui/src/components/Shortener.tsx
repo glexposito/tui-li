@@ -60,17 +60,15 @@ function ErrorMessage({
 
 /** Success block (short link + copy) */
 function ShortLink({
-  id,
-  origin,
+  shortUrl,
   copied,
   onCopy,
 }: {
-  id: string;
-  origin: string;
+  shortUrl: string;
   copied: boolean;
   onCopy: () => void;
 }) {
-  const href = `${origin}/${id}`;
+  const href = `${shortUrl}`;
   return (
     <div className="text-center d-flex justify-content-center align-items-center gap-2">
       <span className="lead text-main">Short link:</span>
@@ -96,9 +94,6 @@ export default function Shortener() {
   const [url, setUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [clientError, setClientError] = useState<string | null>(null);
-
-  const origin =
-    typeof window !== 'undefined' ? canonicalizeOrigin(window.location.origin) : 'https://tuili.kiwi';
 
   const handleShorten = () => {
     setClientError(null);
@@ -133,7 +128,7 @@ export default function Shortener() {
   const handleCopy = async () => {
     if (!shortenMutation.data) return;
     try {
-      await navigator.clipboard.writeText(`${origin}/${shortenMutation.data.id}`);
+      await navigator.clipboard.writeText(`${shortenMutation.data.short_url}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -174,8 +169,7 @@ export default function Shortener() {
               <ErrorMessage clientError={clientError} />
             ) : shortenMutation.isSuccess ? (
               <ShortLink
-                id={shortenMutation.data!.id}
-                origin={origin}
+                shortUrl={shortenMutation.data!.short_url}
                 copied={copied}
                 onCopy={handleCopy}
               />

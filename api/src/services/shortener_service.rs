@@ -43,7 +43,7 @@ impl ShortenerService {
             pk: format!("URL#{}", Self::hash_url(long_url)),
             id: id.clone(),
             long_url: long_url.to_string(),
-            created_at,
+            created_at: created_at.clone(),
             ttl: None,
         };
 

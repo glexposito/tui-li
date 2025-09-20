@@ -1,3 +1,5 @@
+use crate::models::app_settings::AppSettings;
+use crate::models::short_url_response::ShortUrlResponse;
 use crate::services::shortener_service::ShortenerService;
 use actix_web::{HttpResponse, Responder, web};
 use normalize_url_rs::{Options, OptionsBuilder, normalize_url};
@@ -20,6 +22,7 @@ pub struct ShortenRequest {
 
 pub async fn shorten_url(
     service: web::Data<ShortenerService>,
+    settings: web::Data<AppSettings>,
     body: web::Json<ShortenRequest>,
 ) -> impl Responder {
     if !matches!(body.long_url.scheme(), "http" | "https") {
@@ -40,10 +43,10 @@ pub async fn shorten_url(
     };
 
     match service.shorten(&normalized).await {
-        Ok(id) => HttpResponse::Ok().json(json!({
-            "id": id,
-            "long_url": normalized,
-        })),
+        Ok(id) => HttpResponse::Ok().json(ShortUrlResponse {
+            short_url: format!("{}{}", settings.short_url_base, id),
+            long_url: normalized,
+        }),
         Err(e) => HttpResponse::InternalServerError().json(json!({
             "error": "shorten_failed",
             "message": e.to_string(),
