@@ -4,19 +4,21 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-actix-web = "4"
+actix-web = "4.11"
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde_json = "1.0.145"
 rand = "0.9.2"
 normalize-url-rs = "0.2"
 url = "2.5.7"
-chrono = "0.4.41"
-anyhow = "1.0.99"
-aws-config = "1.8.5"
-aws-sdk-dynamodb = "1.92.0"
-serde_dynamo = { version = "4", features = ["aws-sdk-dynamodb+1"] }
+chrono = "0.4.42"
+anyhow = "1.0.100"
+aws-config = "1.8.6"
+aws-sdk-dynamodb = "1.93.0"
+serde_dynamo = { version = "4.3", features = ["aws-sdk-dynamodb+1"] }
 sha2 = "0.10.9"
 hex = "0.4.3"
+tracing-subscriber = { version = "0.3.20", features = ["fmt", "env-filter"] }
+tracing = "0.1.41"
 
 [dev-dependencies]
 actix-http = "3.11.1"
@@ -24,8 +26,9 @@ testcontainers = "0.25.0"
 # only enable what you use; drop postgres to speed up builds
 testcontainers-modules = { version = "0.13.0", default-features = false, features = ["dynamodb"] }
 
-
 [profile.release]
 lto = true
 codegen-units = 1
 opt-level = "z"   # or "s"
+panic = "unwind"  # so panics log, not just abort
+debug = 1         # keep some symbols for backtraces

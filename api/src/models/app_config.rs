@@ -13,7 +13,7 @@ const ENV_DDB_ENDPOINT: &str = "DYNAMODB_ENDPOINT";
 
 impl AppConfig {
     pub fn from_env_or_default() -> Self {
-        let host = std::env::var(ENV_HOST).unwrap_or_else(|_| "127.0.0.1".into());
+        let host = std::env::var(ENV_HOST).unwrap_or_else(|_| "0.0.0.0".into());
 
         let port: u16 = std::env::var(ENV_PORT)
             .ok()
