@@ -7,7 +7,7 @@ use aws_sdk_dynamodb::types::{
 use aws_sdk_dynamodb::{Client, config::Credentials, types::AttributeValue as Av};
 use testcontainers::ContainerAsync;
 use testcontainers_modules::{dynamodb_local, testcontainers::runners::AsyncRunner};
-use tui_li::models::app_config::AppConfig;
+use tui_li::models::app_settings::AppSettings;
 use tui_li::routes;
 use tui_li::services::shortener_service::ShortenerService;
 use tui_li::stores::url_store::UrlStore;
@@ -20,14 +20,14 @@ pub struct DdbGuard {
 /// Boot a fresh DynamoDB Local + client, ensure table, and build your service.
 /// Returns the service (as `web::Data<_>`) + a guard that holds the container.
 
-pub async fn setup_service() -> (web::Data<ShortenerService>, web::Data<AppConfig>, DdbGuard) {
-    let (shortener_service, config, _client, guard) = setup_service_with_client().await;
-    (shortener_service, config, guard)
+pub async fn setup_service() -> (web::Data<ShortenerService>, web::Data<AppSettings>, DdbGuard) {
+    let (shortener_service, settings, _client, guard) = setup_service_with_client().await;
+    (shortener_service, settings, guard)
 }
 
 pub async fn setup_service_with_client() -> (
     web::Data<ShortenerService>,
-    web::Data<AppConfig>,
+    web::Data<AppSettings>,
     Client,
     DdbGuard,
 ) {
@@ -51,7 +51,7 @@ pub async fn setup_service_with_client() -> (
 
     let store = UrlStore::new(client.clone(), table.to_string());
     let service = ShortenerService::new(store);
-    let config = AppConfig {
+    let settings = AppSettings {
         host: "localhost".into(),
         port: 3000,
         short_url_base: "http://localhost:3000/".into(),
@@ -59,11 +59,11 @@ pub async fn setup_service_with_client() -> (
     };
 
     let shortener_service = web::Data::new(service);
-    let config_data = web::Data::new(config);
+    let settings_data = web::Data::new(settings);
 
     (
         shortener_service,
-        config_data,
+        settings_data,
         client,
         DdbGuard {
             _container: container,
@@ -73,7 +73,7 @@ pub async fn setup_service_with_client() -> (
 
 pub async fn init_app(
     service_data: web::Data<ShortenerService>,
-    config_data: web::Data<AppConfig>,
+    settings_data: web::Data<AppSettings>,
 ) -> impl actix_web::dev::Service<
     actix_http::Request,
     Response = actix_web::dev::ServiceResponse,
@@ -82,7 +82,7 @@ pub async fn init_app(
     test::init_service(
         App::new()
             .app_data(service_data)
-            .app_data(config_data)
+            .app_data(settings_data)
             .configure(routes::config),
     )
     .await
