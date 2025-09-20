@@ -1,13 +1,10 @@
 #![allow(dead_code)]
 use actix_web::{App, test, web};
 use aws_config::{BehaviorVersion, Region};
-use aws_sdk_dynamodb::types::{
-    AttributeDefinition, KeySchemaElement, KeyType, ProvisionedThroughput, ScalarAttributeType,
-};
 use aws_sdk_dynamodb::{Client, config::Credentials, types::AttributeValue as Av};
+use aws_sdk_dynamodb::types::{AttributeDefinition, KeySchemaElement, KeyType, ProvisionedThroughput, ScalarAttributeType};
 use testcontainers::ContainerAsync;
 use testcontainers_modules::{dynamodb_local, testcontainers::runners::AsyncRunner};
-use tui_li::models::app_config::AppConfig;
 use tui_li::routes;
 use tui_li::services::shortener_service::ShortenerService;
 use tui_li::stores::url_store::UrlStore;
@@ -20,17 +17,12 @@ pub struct DdbGuard {
 /// Boot a fresh DynamoDB Local + client, ensure table, and build your service.
 /// Returns the service (as `web::Data<_>`) + a guard that holds the container.
 
-pub async fn setup_service() -> (web::Data<ShortenerService>, web::Data<AppConfig>, DdbGuard) {
-    let (shortener_service, config, _client, guard) = setup_service_with_client().await;
-    (shortener_service, config, guard)
+pub async fn setup_service() -> (web::Data<ShortenerService>, DdbGuard) {
+    let (shortener_service, _client, guard) = setup_service_with_client().await;
+    (shortener_service, guard)
 }
 
-pub async fn setup_service_with_client() -> (
-    web::Data<ShortenerService>,
-    web::Data<AppConfig>,
-    Client,
-    DdbGuard,
-) {
+pub async fn setup_service_with_client() -> (web::Data<ShortenerService>, Client, DdbGuard) {
     let container = dynamodb_local::DynamoDb::default().start().await.unwrap();
 
     let host = container.get_host().await.expect("host");
@@ -51,19 +43,10 @@ pub async fn setup_service_with_client() -> (
 
     let store = UrlStore::new(client.clone(), table.to_string());
     let service = ShortenerService::new(store);
-    let config = AppConfig {
-        host: "localhost".into(),
-        port: 3000,
-        short_url_base: "http://localhost:3000/".into(),
-        dynamodb_endpoint: "".to_string(),
-    };
-
     let shortener_service = web::Data::new(service);
-    let config_data = web::Data::new(config);
 
     (
         shortener_service,
-        config_data,
         client,
         DdbGuard {
             _container: container,
@@ -73,19 +56,12 @@ pub async fn setup_service_with_client() -> (
 
 pub async fn init_app(
     service_data: web::Data<ShortenerService>,
-    config_data: web::Data<AppConfig>,
 ) -> impl actix_web::dev::Service<
     actix_http::Request,
     Response = actix_web::dev::ServiceResponse,
     Error = actix_web::Error,
 > {
-    test::init_service(
-        App::new()
-            .app_data(service_data)
-            .app_data(config_data)
-            .configure(routes::config),
-    )
-    .await
+    test::init_service(App::new().app_data(service_data).configure(routes::config)).await
 }
 
 pub async fn seed_url(
